@@ -33,7 +33,6 @@ typedef enum {
 + (void)setRemoteResponseType:(ORSResponseFormat) format;
 + (ORSResponseFormat)getRemoteResponseType;
 
-
 // Finders
 + (NSArray *)findAllRemote;
 + (NSArray *)findAllRemoteWithResponse:(NSError **)aError;
@@ -70,7 +69,7 @@ typedef enum {
 
 // Instance helpers for getting at commonly used class-level values
 - (NSString *)getRemoteCollectionPath;
-- (NSString *)convertToRemoteExpectedType;
+- (NSString *)convertToRemoteExpectedTypeAndCaptureAttachments:(NSMutableArray *)attachments;
 
 //Equality test for remote enabled objects based on class name and remote id
 - (BOOL)isEqualToRemote:(id)anObject;

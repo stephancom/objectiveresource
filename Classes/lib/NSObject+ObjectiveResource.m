@@ -68,7 +68,7 @@ static ORSResponseFormat _format;
 		default:
 			[[self class] setRemoteProtocolExtension:@".xml"];
 			[[self class] setRemoteParseDataMethod:@selector(fromXMLData:)];
-			[[self class] setRemoteSerializeMethod:@selector(toXMLElementExcluding:)];
+			[[self class] setRemoteSerializeMethod:@selector(toXMLElementExcluding:captureAttachments:)];
 			break;
 	}
 }
@@ -86,7 +86,7 @@ static ORSResponseFormat _format;
 }
 
 + (SEL) getRemoteSerializeMethod {
-	return (nil == _activeResourceSerializeMethod) ? @selector(toXMLElementExcluding:) : _activeResourceSerializeMethod;
+	return (nil == _activeResourceSerializeMethod) ? @selector(toXMLElementExcluding:captureAttachments:) : _activeResourceSerializeMethod;
 }
 
 + (void) setRemoteSerializeMethod:(SEL)serializeMethod {
@@ -103,7 +103,6 @@ static ORSResponseFormat _format;
 		_activeResourceProtocolExtension = [protocolExtension copy];
 	}
 }
-
 
 // Find all items 
 + (NSArray *)findAllRemoteWithResponse:(NSError **)aError {
@@ -167,9 +166,14 @@ static ORSResponseFormat _format;
 	return [[self class] getRemoteCollectionPath];
 }
 
-// Converts the object to the data format expected by the server
-- (NSString *)convertToRemoteExpectedType {	  
-  return [self performSelector:[[self class] getRemoteSerializeMethod] withObject:[self excludedPropertyNames]];
+// Converts the object to the data format expected by the server.  Does not capture ORBinaryData file attachements
+//- (NSString *)convertToRemoteExpectedType {	  
+//  return [self performSelector:[[self class] getRemoteSerializeMethod] withObject:[self excludedPropertyNames]];
+//}
+
+// Converts the object to the data format, but also captures any potential ORBinaryData attachments (for file uploads)
+- (NSString *)convertToRemoteExpectedTypeAndCaptureAttachments: (NSMutableArray *)attachments {	  
+	return [self performSelector:[[self class] getRemoteSerializeMethod] withObject:[self excludedPropertyNames] withObject:attachments];
 }
 
 
@@ -211,7 +215,11 @@ static ORSResponseFormat _format;
 }
 
 - (BOOL)createRemoteAtPath:(NSString *)path withResponse:(NSError **)aError {
-	Response *res = [Connection post:[self convertToRemoteExpectedType] to:path withUser:[[self class]  getRemoteUser] andPassword:[[self class]  getRemotePassword]];
+
+	NSMutableArray *attachments = [[NSMutableArray alloc] init];
+	
+	Response *res = [Connection post:[self convertToRemoteExpectedTypeAndCaptureAttachments:attachments] to:path withAttachments:attachments 
+							withUser:[[self class]  getRemoteUser] andPassword:[[self class]  getRemotePassword]];
 	if([res isError] && aError) {
 		*aError = res.error;
 	}
@@ -226,8 +234,14 @@ static ORSResponseFormat _format;
 }
 
 -(BOOL)updateRemoteAtPath:(NSString *)path withResponse:(NSError **)aError {	
-	Response *res = [Connection put:[self convertToRemoteExpectedType] to:path 
+
+	NSMutableArray *attachments = [[[NSMutableArray alloc] init] retain];
+	
+	Response *res = [Connection put:[self convertToRemoteExpectedTypeAndCaptureAttachments:attachments] to:path withAttachments:attachments 
 						   withUser:[[self class]  getRemoteUser] andPassword:[[self class]  getRemotePassword]];
+
+	[attachments release];
+	
 	if([res isError] && aError) {
 		*aError = res.error;
 	}

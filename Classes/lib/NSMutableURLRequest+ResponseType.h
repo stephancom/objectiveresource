@@ -9,5 +9,6 @@
 @interface NSMutableURLRequest(ResponseType)
 
 +(NSMutableURLRequest *) requestWithUrl:(NSURL *)url andMethod:(NSString*)method;
+-(NSString *) rootMIMEType;
 
 @end
