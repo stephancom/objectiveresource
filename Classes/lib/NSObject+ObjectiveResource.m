@@ -118,6 +118,27 @@ static ORSResponseFormat _format;
 	return [self findAllRemoteWithResponse:&aError];
 }
 
++ (id)findAllRemoteWithQueryParameters:(NSDictionary *)parameters withResponse:(NSError **)aError {
+	
+	NSMutableString *collectionPath = [NSMutableString stringWithString:[self getRemoteCollectionPath]];
+	
+	if (parameters) {
+		[collectionPath appendString:@"?"];
+		[collectionPath appendString:[parameters urlEncodedString]];
+	}
+		
+	Response *res = [Connection get:(NSString *)collectionPath withUser:[[self class] getRemoteUser] andPassword:[[self class]  getRemotePassword]];
+	if([res isError] && aError) {
+		*aError = res.error;
+	}
+	return [self performSelector:[self getRemoteParseDataMethod] withObject:res.body];
+}
+
++ (id)findAllRemoteWithQueryParameters:(NSDictionary *)parameters{
+	NSError *aError;
+	return [self findAllRemoteWithQueryParameters:parameters withResponse:&aError];
+}
+
 + (id)findRemote:(NSString *)elementId withResponse:(NSError **)aError {
 	Response *res = [Connection get:[self getRemoteElementPath:elementId] withUser:[[self class] getRemoteUser] andPassword:[[self class]  getRemotePassword]];
 	if([res isError] && aError) {
@@ -236,10 +257,10 @@ static ORSResponseFormat _format;
 -(BOOL)updateRemoteAtPath:(NSString *)path withResponse:(NSError **)aError {	
 
 	NSMutableArray *attachments = [[[NSMutableArray alloc] init] retain];
-	
+		
 	Response *res = [Connection put:[self convertToRemoteExpectedTypeAndCaptureAttachments:attachments] to:path withAttachments:attachments 
 						   withUser:[[self class]  getRemoteUser] andPassword:[[self class]  getRemotePassword]];
-
+	
 	[attachments release];
 	
 	if([res isError] && aError) {
