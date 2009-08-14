@@ -127,7 +127,7 @@ static NSMutableArray *activeDelegates;
 		
 
 		// override default content type configured by the requestWithURL:andMethod method
-		[request setValue:(@"multipart/related; boundary=%@; type=\"%@\"",stringBoundary, [request rootMIMEType]) forHTTPHeaderField:@"Content-Type"];
+		[request setValue:([NSString stringWithFormat:@"multipart/related; boundary=%@; type=\"%@\"", stringBoundary, [request rootMIMEType]]) forHTTPHeaderField:@"Content-Type"];
 		
 		// Set the boundary for the root content and declare its MIME TYPE
 		[formattedBody appendData:[[NSString stringWithFormat:@"--%@\r\n",stringBoundary] dataUsingEncoding:NSUTF8StringEncoding]];
@@ -154,8 +154,8 @@ static NSMutableArray *activeDelegates;
 			// generate headers
 			[formattedBody appendData:[[NSString stringWithFormat:@"--%@\r\n",stringBoundary] dataUsingEncoding:NSUTF8StringEncoding]];
 			[formattedBody appendData:[[NSString stringWithFormat:@"Content-Type: %@\r\n",mimetype] dataUsingEncoding:NSUTF8StringEncoding]];
-			[formattedBody appendData:[[NSString stringWithFormat:@"Content-ID: %@\r\n",contentID] dataUsingEncoding:NSUTF8StringEncoding]];
-			[formattedBody appendData:[[NSString stringWithFormat:@"Content-Disposition: INLINE; filename=\"%@\"\r\n",fileName] dataUsingEncoding:NSUTF8StringEncoding]];
+			[formattedBody appendData:[[NSString stringWithFormat:@"Content-ID: <%@>\r\n",contentID] dataUsingEncoding:NSUTF8StringEncoding]];
+			[formattedBody appendData:[[NSString stringWithFormat:@"Content-Disposition: INLINE; filename=\"%@\"\r\n\r\n",fileName] dataUsingEncoding:NSUTF8StringEncoding]];
 			
 			// and add the file
 //			[formattedBody appendData:[[attachment base64Encoding] dataUsingEncoding:NSUTF8StringEncoding]];
@@ -169,14 +169,14 @@ static NSMutableArray *activeDelegates;
 		}
 		
 		// terminate the upload set with one last boundary string and a new line.
-		[formattedBody appendData:[[NSString stringWithFormat:@"--%@\r\n",stringBoundary] dataUsingEncoding:NSUTF8StringEncoding]];
+		[formattedBody appendData:[[NSString stringWithFormat:@"--%@--\r\n",stringBoundary] dataUsingEncoding:NSUTF8StringEncoding]];
 		
 		// Calculate the upload size and add it to the headers
 		[request setValue:[NSString stringWithFormat:@"%d", [formattedBody length]] forHTTPHeaderField:@"Content-Length"];
 		
 		// pass the formatted body to the main request object
 		[request setHTTPBody:formattedBody];
-
+		
 		[formattedBody release];
 		
 		
