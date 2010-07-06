@@ -7,6 +7,7 @@
 //
 
 #import "ObjectiveResourceConfig.h"
+#import "SerializationConfig.h"
 
 @implementation ObjectiveResourceConfig
 
@@ -52,5 +53,14 @@
 + (ORSResponseFormat)getResponseType {
 	return [self getRemoteResponseType];
 }
+
++ (BOOL) getAllowMultipart {
+	return [SerializationConfig getShouldCaptureBinaryAttachments];
+}
+
++ (void) setAllowMultipart: (BOOL) flag {
+	[SerializationConfig setShouldCaptureBinaryAttachments:flag];
+}
+
 
 @end

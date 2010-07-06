@@ -12,21 +12,48 @@
 
 @implementation NSMutableURLRequest(ResponseType)
 
+
 +(NSMutableURLRequest *) requestWithUrl:(NSURL *)url andMethod:(NSString*)method {
 	NSMutableURLRequest * request = [NSMutableURLRequest requestWithURL:url cachePolicy:NSURLRequestReloadIgnoringCacheData
 																											timeoutInterval:[Connection timeout]];
+
+	NSMutableString *rootMIMEType = [NSMutableString string];
+	
 	[request setHTTPMethod:method];
 	switch ([ObjectiveResourceConfig getResponseType]) {
 		case JSONResponse:
-			[request setValue:@"application/json" forHTTPHeaderField:@"Content-Type"];	
-			[request addValue:@"application/json" forHTTPHeaderField:@"Accept"];
+			rootMIMEType = @"application/json";
 			break;
 		default:
-			[request setValue:@"application/xml" forHTTPHeaderField:@"Content-Type"];	
-			[request addValue:@"application/xml" forHTTPHeaderField:@"Accept"];
+			rootMIMEType = @"application/xml";
 			break;
 	}
+	
+	[request setValue:rootMIMEType forHTTPHeaderField:@"Content-Type"];	
+	[request addValue:rootMIMEType forHTTPHeaderField:@"Accept"];
+
+	
 	return request;
+}
+
+/**
+ Returns this request's root mime type, which can be used to override defaults,
+ as in the case of a request that needs to append multipart attachments
+ */
+- (NSString *) rootMIMEType {
+
+	NSMutableString *rootMIMEType = [NSMutableString string];
+
+	switch ([ObjectiveResourceConfig getResponseType]) {
+		case JSONResponse:
+			rootMIMEType = @"application/json";
+			break;
+		default:
+			rootMIMEType = @"application/xml";
+			break;
+	}
+		
+	return rootMIMEType;	
 }
 
 @end

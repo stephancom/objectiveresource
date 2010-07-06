@@ -40,6 +40,19 @@ typedef enum {
 // Finders
 + (NSArray *)findAllRemote;
 + (NSArray *)findAllRemoteWithResponse:(NSError **)aError;
+
+/**
+ If your remote object requires GET parameters (for search queries, etc)
+ Implement this method.
+ */
++ (id)findAllRemoteWithQueryParameters:(NSDictionary *)parameters;
+
+/**
+ If your remote object requires GET parameters (for search queries, etc)
+ Implement this method.  This method also sets an Error object, if problems occur
+ */
++ (id)findAllRemoteWithQueryParameters:(NSDictionary *)parameters withResponse:(NSError **)aError;
+
 + (id)findRemote:(NSString *)elementId;
 + (id)findRemote:(NSString *)elementId withResponse:(NSError **)aError; 
 
@@ -73,7 +86,7 @@ typedef enum {
 
 // Instance helpers for getting at commonly used class-level values
 - (NSString *)getRemoteCollectionPath;
-- (NSString *)convertToRemoteExpectedType;
+- (NSString *)convertToRemoteExpectedTypeAndCaptureAttachments:(NSMutableArray *)attachments;
 
 //Equality test for remote enabled objects based on class name and remote id
 - (BOOL)isEqualToRemote:(id)anObject;
