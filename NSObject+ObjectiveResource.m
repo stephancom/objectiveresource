@@ -110,6 +110,8 @@ static ORSResponseFormat _format;
 
 // Find all items 
 + (NSArray *)findAllRemoteWithResponse:(NSError **)aError {
+	NSLog(@"fetching from %@", [self getRemoteCollectionPath]);
+	
 	NSLog(@"fetch as user: %@", [[self class] getRemoteUser]);
 	Response *res = [Connection get:[self getRemoteCollectionPath] withUser:[[self class] getRemoteUser] andPassword:[[self class]  getRemotePassword]];
 	if([res isError] && aError) {
@@ -137,6 +139,9 @@ static ORSResponseFormat _format;
 }
 
 + (id)findRemote:(NSString *)elementId withResponse:(NSError **)aError {	
+	NSLog(@"fetching from %@", [self getRemoteElementPath:elementId]);
+	
+	NSLog(@"fetch as user: %@", [[self class] getRemoteUser]);
 	Response *res = [Connection get:[self getRemoteElementPath:elementId] withUser:[[self class] getRemoteUser] andPassword:[[self class]  getRemotePassword]];
 	if([res isError] && aError) {
 		*aError = res.error;

@@ -15,7 +15,7 @@
 #import "NSObject+ObjectiveResource.h"
 
 //#define debugLog(...) NSLog(__VA_ARGS__)
-#ifndef debugLog(...)
+#ifndef debugLog
 	#define debugLog(...)
 #endif
 

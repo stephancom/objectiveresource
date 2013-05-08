@@ -14,5 +14,5 @@
 
 @interface SerializationConfig : NSObject
 
-static BOOL _shouldCaptureBinaryAttachments;
+//static BOOL _shouldCaptureBinaryAttachments;
 @end

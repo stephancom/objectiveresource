@@ -16,16 +16,16 @@
 
 - (NSString *)toXMLValueWithAttachments: (NSMutableArray *) attachments {
 	
-//	// If the item is flagged as attachable, save it to attachments array
-//	// If it isn't attachable, Base64 encode it into a string.
-//	// NOTE: This conditional references the global NSObject+SerializableSupport parameters
-//	if ([SerializationConfig getShouldCaptureBinaryAttachments]) {	
-//		[attachments addObject: self];
-//		return [NSString stringWithFormat:@"cid:%@", [self contentId]];
-//	}
-//	else {
-//		return [self base64Encoding];
-//	}
+	// If the item is flagged as attachable, save it to attachments array
+	// If it isn't attachable, Base64 encode it into a string.
+	// NOTE: This conditional references the global NSObject+SerializableSupport parameters
+	if ([SerializationConfig getShouldCaptureBinaryAttachments]) {	
+		[attachments addObject: self];
+		return [NSString stringWithFormat:@"cid:%@", [self contentId]];
+	}
+	else {
+		return [self base64Encoding];
+	}
 	
 }
 
