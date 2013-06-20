@@ -165,11 +165,11 @@ static ORSResponseFormat _format;
 }
 
 + (NSString *)getRemoteElementPath:(NSString *)elementId {
-	return [NSString stringWithFormat:@"%@%@/%@%@", [self getRemoteSite], [self getRemoteCollectionName], elementId, [self getRemoteProtocolExtension]];
+	return [NSString stringWithFormat:@"%@%@/%@", [self getRemoteSite], [self getRemoteCollectionName], elementId];
 }
 
 + (NSString *)getRemoteCollectionPath {
-	return [[[self getRemoteSite] stringByAppendingString:[self getRemoteCollectionName]] stringByAppendingString:[self getRemoteProtocolExtension]];
+	return [[self getRemoteSite] stringByAppendingString:[self getRemoteCollectionName]];
 }
 
 + (NSString *)getRemoteCollectionPathWithParameters:(NSDictionary *)parameters {
