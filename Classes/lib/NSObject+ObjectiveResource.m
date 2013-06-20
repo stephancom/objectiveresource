@@ -12,8 +12,6 @@
 #import "CoreSupport.h"
 #import "XMLSerializableSupport.h"
 #import "JSONSerializableSupport.h"
-#import "FormSerializableSupport.h"
-
 
 static NSString *_activeResourceSite = nil;
 static NSString *_activeResourceUser = nil;
@@ -24,7 +22,6 @@ static NSString *_activeResourceProtocolExtension = @".xml";
 static ORSResponseFormat _format;
 
 @implementation NSObject (ObjectiveResource)
-
 
 #pragma mark configuration methods
 + (NSString *)getRemoteSite {
@@ -44,8 +41,8 @@ static ORSResponseFormat _format;
 
 + (void)setRemoteUser:(NSString *)user {
 	if (_activeResourceUser != user) {
-	   [_activeResourceUser autorelease];
-	    _activeResourceUser = [user copy];
+		[_activeResourceUser autorelease];
+		_activeResourceUser = [user copy];
 	}
 }
 
@@ -110,44 +107,24 @@ static ORSResponseFormat _format;
 
 // Find all items 
 + (NSArray *)findAllRemoteWithResponse:(NSError **)aError {
-	NSLog(@"fetching from %@", [self getRemoteCollectionPath]);
-	
-	NSLog(@"fetch as user: %@", [[self class] getRemoteUser]);
 	Response *res = [Connection get:[self getRemoteCollectionPath] withUser:[[self class] getRemoteUser] andPassword:[[self class]  getRemotePassword]];
 	if([res isError] && aError) {
 		*aError = res.error;
-		return nil;
-	}	
-	NSString *body = [[[NSString alloc] initWithData:res.body encoding:NSUTF8StringEncoding] autorelease];
-	NSString *withoutheader = [body stringByReplacingOccurrencesOfString:@"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" withString:@""];
-	//NSLog(@"%d", [withoutheader compare:@"<nil-classes type=\"array\"/>\n"]);
-	if ([withoutheader compare:@"<nil-classes type=\"array\"/>\n"] == NSOrderedSame){
-		return nil; //empty array
 	}
-	id data = [self performSelector:[self getRemoteParseDataMethod] withObject:res.body];
-	
-	if ([data isKindOfClass:[NSError class]]) {
-		*aError = (NSError*)data;
-		return nil;
-	}			
-						
-	return (NSArray*)data;
+	return [self performSelector:[self getRemoteParseDataMethod] withObject:res.body];
 }
 
-+ (NSArray *)findAllRemote:(NSError **) aError {
-	return [self findAllRemoteWithResponse:aError];
++ (NSArray *)findAllRemote {
+	NSError *aError;
+	return [self findAllRemoteWithResponse:&aError];
 }
 
-+ (id)findRemote:(NSString *)elementId withResponse:(NSError **)aError {	
-	NSLog(@"fetching from %@", [self getRemoteElementPath:elementId]);
-	
-	NSLog(@"fetch as user: %@", [[self class] getRemoteUser]);
++ (id)findRemote:(NSString *)elementId withResponse:(NSError **)aError {
 	Response *res = [Connection get:[self getRemoteElementPath:elementId] withUser:[[self class] getRemoteUser] andPassword:[[self class]  getRemotePassword]];
 	if([res isError] && aError) {
 		*aError = res.error;
 	}
-	id data = [self performSelector:[self getRemoteParseDataMethod] withObject:res.body];
-	return data;
+	return [self performSelector:[self getRemoteParseDataMethod] withObject:res.body];
 }
 
 + (id)findRemote:(NSString *)elementId {
@@ -165,11 +142,11 @@ static ORSResponseFormat _format;
 }
 
 + (NSString *)getRemoteElementPath:(NSString *)elementId {
-	return [NSString stringWithFormat:@"%@%@/%@", [self getRemoteSite], [self getRemoteCollectionName], elementId];
+	return [NSString stringWithFormat:@"%@%@/%@%@", [self getRemoteSite], [self getRemoteCollectionName], elementId, [self getRemoteProtocolExtension]];
 }
 
 + (NSString *)getRemoteCollectionPath {
-	return [[self getRemoteSite] stringByAppendingString:[self getRemoteCollectionName]];
+	return [[[self getRemoteSite] stringByAppendingString:[self getRemoteCollectionName]] stringByAppendingString:[self getRemoteProtocolExtension]];
 }
 
 + (NSString *)getRemoteCollectionPathWithParameters:(NSDictionary *)parameters {
@@ -190,14 +167,11 @@ static ORSResponseFormat _format;
 	return [[self class] getRemoteCollectionPath];
 }
 
-- (NSArray*)getDefaultExclusions{
-	// exclude id , created_at , updated_at
-	return [NSArray arrayWithObjects:[self getRemoteClassIdName],@"createdAt",@"updatedAt",nil];
-}
-
 // Converts the object to the data format expected by the server
 - (NSString *)convertToRemoteExpectedType {
-	return [self performSelector:[[self class] getRemoteSerializeMethod] withObject:[self getDefaultExclusions]];
+	// exclude id , created_at , updated_at
+	NSArray	 *defaultExclusions = [NSArray arrayWithObjects:[self getRemoteClassIdName],@"createdAt",@"updatedAt",nil];
+	return [self performSelector:[[self class] getRemoteSerializeMethod] withObject:defaultExclusions];
 }
 
 #pragma mark default equals methods for id and class based equality
@@ -237,32 +211,11 @@ static ORSResponseFormat _format;
 	
 }
 
-
-
-- (id)reload{
-	id reloaded = [[self class] findRemote:[self getRemoteId]];
-	[self setProperties:[reloaded properties]];
-	return self;
-}
-
-	 
-	 
 - (BOOL)createRemoteAtPath:(NSString *)path withResponse:(NSError **)aError {
-	//Response *res = [Connection post:[self convertToRemoteExpectedType] to:path withUser:[[self class]  getRemoteUser] andPassword:[[self class]  getRemotePassword]];
-	Response *res = [Connection post:path withUser:[[self class]  getRemoteUser] andPassword:[[self class]  getRemotePassword] forARObject:self];
+	Response *res = [Connection post:[self convertToRemoteExpectedType] to:path withUser:[[self class]  getRemoteUser] andPassword:[[self class]  getRemotePassword]];
 	if([res isError] && aError) {
 		*aError = res.error;
 	}
-	if ([res isARError]) {
-		NSString *body = [[[NSString alloc] initWithData:res.body encoding:NSUTF8StringEncoding] autorelease];
-		NSString *plist = [[[body stringByReplacingOccurrencesOfString:@"<errors>" withString:@"<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\"><plist version=\"1.0\"><array>"] stringByReplacingOccurrencesOfString:@"</errors>" withString:@"</array></plist>"] stringByReplacingOccurrencesOfString:@"error>" withString:@"string>"];		
-		
-		
-		NSError *error = nil;		
-		NSArray *prop = [NSPropertyListSerialization propertyListWithData:[plist dataUsingEncoding:NSUTF8StringEncoding] options:0 format:nil error:&error];
-		[self setProperties:[NSDictionary dictionaryWithObjectsAndKeys:prop, @"errors", nil]];
-	}
-	
 	if ([res isSuccess]) {
 		NSDictionary *newProperties = [[[self class] performSelector:[[self class] getRemoteParseDataMethod] withObject:res.body] properties];
 		[self setProperties:newProperties];
@@ -274,7 +227,8 @@ static ORSResponseFormat _format;
 }
 
 -(BOOL)updateRemoteAtPath:(NSString *)path withResponse:(NSError **)aError {	
-	Response *res = [Connection put:path  withUser:[[self class]  getRemoteUser] andPassword:[[self class]  getRemotePassword] forARObject:self];
+	Response *res = [Connection put:[self convertToRemoteExpectedType] to:path 
+						   withUser:[[self class]  getRemoteUser] andPassword:[[self class]  getRemotePassword]];
 	if([res isError] && aError) {
 		*aError = res.error;
 	}
