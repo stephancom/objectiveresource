@@ -62,6 +62,9 @@ NSString *const bodyBoundary = @"1317260451787483034285635977";
 //TODO make this configurable?
 + (void)fixUrl:(NSMutableURLRequest*)request user:(NSString*)user password:(NSString*)password{
 	
+    // DEPRECATED??
+    return;
+    
 	NSURL *url = [request URL];
 	if(user && password) {
 		NSString *authString = [[[NSString stringWithFormat:@"%@:%@",user, password] dataUsingEncoding:NSUTF8StringEncoding] base64Encoding];
@@ -163,14 +166,12 @@ NSString *const bodyBoundary = @"1317260451787483034285635977";
 + (Response *)buildAndSendRequest:(NSString *)method to:(NSString*)url withUser:(NSString *)user andPassword:(NSString *)password forARObject:(NSObject*)arObj{
     NSURL *_url = [NSURL URLWithString:url];
 	NSMutableURLRequest *request = [NSMutableURLRequest requestWithUrl:_url andMethod:method];
-	[request setHTTPShouldHandleCookies:false];
 	
 	[self fixUrl:request user:user password:password];
 	[self buildRequestBody:request method:method forARObject:arObj];
 	
-		
-
-
+    [request setAllHTTPHeaderFields:[NSHTTPCookie requestHeaderFieldsWithCookies:[[NSHTTPCookieStorage sharedHTTPCookieStorage] cookies]]];
+    
 	[self logRequest:request to:[_url absoluteString]];
 	
 	ConnectionDelegate *connectionDelegate = [[[ConnectionDelegate alloc] init] autorelease];
