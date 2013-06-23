@@ -20,6 +20,10 @@
 @implementation NSObject (JSONSerializableSupport)
 
 + (id)fromJSONData:(NSData *)data {
+    NSError *error; // TODO handle error
+    return [NSJSONSerialization JSONObjectWithData:data options:kNilOptions error:&error];
+
+    // deprecated
 	NSString *jsonString = [[[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding] autorelease];
 	id jsonObject = [jsonString JSONValue];
 	return [self deserializeJSON:jsonObject];
